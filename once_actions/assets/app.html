@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="en">
+  <meta charset="utf-8" /><meta
+    name="viewport"
+    content="width=device-width,initial-scale=1"
+  /><title>Client Desk · demo application</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      font: 15px system-ui;
+      background: #f7f8fc;
+      color: #192239;
+      margin: 0;
+      padding: 28px;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 26px;
+    }
+    .brand {
+      font-weight: 750;
+      color: #3855cf;
+    }
+    .tag {
+      font-size: 11px;
+      border: 1px solid #ced6e9;
+      padding: 5px 9px;
+      border-radius: 20px;
+    }
+    h1 {
+      font-size: 26px;
+      margin: 0 0 8px;
+    }
+    p {
+      color: #68738b;
+      line-height: 1.55;
+    }
+    .card {
+      background: white;
+      border: 1px solid #e1e6f0;
+      padding: 24px;
+      border-radius: 16px;
+    }
+    label {
+      display: block;
+      margin: 17px 0 6px;
+      font-size: 13px;
+      font-weight: 650;
+    }
+    input,
+    textarea,
+    select {
+      font: inherit;
+      width: 100%;
+      border: 1px solid #cdd5e4;
+      border-radius: 8px;
+      padding: 11px;
+      background: #fff;
+      color: #192239;
+    }
+    button {
+      font: 600 14px system-ui;
+      border: 0;
+      background: #3855cf;
+      color: white;
+      padding: 12px 18px;
+      border-radius: 9px;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+    fieldset {
+      border: 1px solid #dae1ee;
+      border-radius: 10px;
+      margin: 14px 0;
+      padding: 15px;
+    }
+    legend {
+      font-size: 12px;
+      color: #68738b;
+    }
+    .wide {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .wide .request {
+      grid-column: 1/-1;
+    }
+    .notice {
+      background: #eaf7ef;
+      border: 1px solid #c6e4d1;
+      color: #245d39;
+      border-radius: 8px;
+      padding: 12px;
+      margin-top: 15px;
+    }
+    .muted {
+      font-size: 12px;
+    }
+    article {
+      border-bottom: 1px solid #eee;
+      padding: 12px 0;
+    }
+    article strong {
+      display: block;
+    }
+    #requests {
+      margin-top: 26px;
+    }
+    code {
+      font-size: 11px;
+    }
+    @media (max-width: 650px) {
+      body {
+        padding: 18px;
+      }
+      .wide {
+        display: block;
+      }
+    }
+  </style>
+  <header>
+    <span class="brand">◈ Client Desk</span
+    ><span class="tag">Local demonstration</span>
+  </header>
+  <h1>New client request</h1>
+  <p>A small, working application. Saving a request changes server state.</p>
+  <div class="card">
+    <form id="request-form">
+      <div id="fields"></div>
+      <div id="buttons"></div>
+    </form>
+    <div id="status" role="status"></div>
+  </div>
+  <section id="requests">
+    <h2>Saved requests</h2>
+    <div id="records"></div>
+  </section>
+  <script>
+    const variant =
+      new URLSearchParams(location.search).get("layout") || "original";
+    const fields = document.getElementById("fields");
+    const specs = [
+      ["customer", "Customer", "input"],
+      ["request", "Request", "textarea"],
+      ["priority", "Priority", "select"],
+    ];
+    if (variant === "reordered") specs.reverse();
+
+    const group = document.createElement("fieldset");
+    const legend = document.createElement("legend");
+    legend.textContent = "Client request";
+    group.append(legend);
+    fields.append(group);
+    if (variant === "columns") group.className = "wide";
+    for (const [key, name, tag] of specs) {
+      const holder = document.createElement("div");
+      holder.className = key;
+      const label = document.createElement("label");
+      const control = document.createElement(tag);
+      control.name = key;
+      control.id = "field-" + crypto.randomUUID();
+      label.htmlFor = control.id;
+      label.textContent =
+        variant === "renamed" && key === "customer" ? "Account owner" : name;
+      control.required = true;
+      if (tag === "select") {
+        for (const text of ["normal", "urgent"]) {
+          const option = document.createElement("option");
+          option.value = text;
+          option.textContent = text;
+          control.append(option);
+        }
+      }
+      holder.append(label, control);
+      group.append(holder);
+    }
+    const submit = document.createElement("button");
+    submit.type = "submit";
+    submit.textContent = "Save request";
+    document.getElementById("buttons").append(submit);
+    if (variant === "ambiguous") {
+      const another = submit.cloneNode(true);
+      another.type = "button";
+      document.getElementById("buttons").prepend(another);
+    }
+    async function refresh() {
+      const records = await (await fetch("/api/requests")).json();
+      const out = document.getElementById("records");
+      out.replaceChildren();
+      for (const row of records.slice().reverse()) {
+        const article = document.createElement("article");
+        const title = document.createElement("strong");
+        title.textContent = row.customer + " · " + row.priority;
+        const text = document.createElement("p");
+        text.textContent = row.request;
+        article.append(title, text);
+        out.append(article);
+      }
+      if (!records.length) {
+        out.textContent = "No requests saved yet.";
+      }
+    }
+    document.getElementById("request-form").onsubmit = async (event) => {
+      event.preventDefault();
+      const payload = Object.fromEntries(new FormData(event.target));
+      const result = await fetch("/api/requests", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!result.ok) throw Error("Save failed");
+      const status = document.getElementById("status");
+      status.className = "notice";
+      status.textContent = "Request saved";
+      await refresh();
+    };
+    refresh();
+  </script>
+  <script src="/capture.js"></script>
+</html>

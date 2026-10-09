@@ -1,0 +1,514 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Once Actions · Teach a task</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #162237;
+        --muted: #6d7890;
+        --line: #e0e5ee;
+        --blue: #3c54d7;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: #f4f5f8;
+        color: var(--ink);
+        font: 14px system-ui;
+      }
+      header {
+        height: 68px;
+        padding: 0 32px;
+        background: white;
+        border-bottom: 1px solid var(--line);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .brand {
+        font-size: 20px;
+        font-weight: 750;
+        letter-spacing: -0.6px;
+      }
+      .brand span {
+        color: var(--blue);
+      }
+      .badge {
+        font-size: 11px;
+        background: #eef0fc;
+        color: #4354a1;
+        border-radius: 20px;
+        padding: 7px 11px;
+      }
+      .intro {
+        padding: 32px 32px 22px;
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 24px;
+      }
+      .eyebrow {
+        font-size: 11px;
+        letter-spacing: 1.8px;
+        text-transform: uppercase;
+        color: var(--blue);
+        font-weight: 750;
+      }
+      h1 {
+        font-size: 34px;
+        letter-spacing: -1.2px;
+        margin: 8px 0 10px;
+      }
+      p {
+        color: var(--muted);
+        line-height: 1.65;
+        margin: 0;
+      }
+      .intro p {
+        max-width: 580px;
+      }
+      .stepbar {
+        font-size: 12px;
+        color: var(--muted);
+        padding-bottom: 5px;
+      }
+      main {
+        display: grid;
+        grid-template-columns: 370px minmax(0, 1fr);
+        gap: 20px;
+        padding: 0 32px 32px;
+      }
+      .panel,
+      .browser {
+        background: white;
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        overflow: hidden;
+      }
+      .panel {
+        padding: 22px;
+      }
+      .panel h2 {
+        font-size: 17px;
+        margin: 0 0 8px;
+      }
+      .section {
+        padding-top: 22px;
+        margin-top: 22px;
+        border-top: 1px solid var(--line);
+      }
+      label {
+        display: block;
+        font-size: 12px;
+        font-weight: 650;
+        margin: 14px 0 6px;
+      }
+      input,
+      textarea,
+      select {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #cdd4e1;
+        border-radius: 8px;
+        background: white;
+        color: var(--ink);
+        font: inherit;
+      }
+      textarea {
+        min-height: 64px;
+        resize: vertical;
+      }
+      button {
+        border: 0;
+        border-radius: 8px;
+        padding: 11px 14px;
+        font: 650 13px system-ui;
+        cursor: pointer;
+        background: var(--blue);
+        color: white;
+      }
+      button:disabled {
+        opacity: 0.5;
+        cursor: default;
+      }
+      .secondary {
+        background: #f0f2f7;
+        color: #293b65;
+      }
+      .buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 15px;
+      }
+      .browser-head {
+        background: #fcfcfe;
+        padding: 14px 18px;
+        border-bottom: 1px solid var(--line);
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .dots {
+        letter-spacing: 4px;
+        color: #b7c0d0;
+      }
+      .browser-head b {
+        font-weight: 500;
+      }
+      .browser iframe {
+        width: 100%;
+        height: 760px;
+        border: 0;
+        display: block;
+      }
+      .recording {
+        color: #b32244;
+        font-weight: 700;
+      }
+      .learned {
+        list-style: none;
+        padding: 0;
+        margin: 14px 0;
+      }
+      .learned li {
+        padding: 10px 0;
+        border-bottom: 1px solid #edf0f5;
+        font-size: 12px;
+        line-height: 1.5;
+      }
+      .learned em {
+        font-style: normal;
+        color: var(--blue);
+      }
+      .status {
+        padding: 12px;
+        background: #edf2fb;
+        border-radius: 9px;
+        line-height: 1.6;
+        margin-top: 15px;
+        font-size: 12px;
+      }
+      .status.error {
+        background: #fff1e8;
+        color: #8b4723;
+      }
+      .status.good {
+        background: #eaf6ed;
+        color: #25623a;
+      }
+      .foot {
+        font-size: 11px;
+        color: var(--muted);
+        line-height: 1.65;
+        margin-top: 15px;
+      }
+      .count {
+        font-variant-numeric: tabular-nums;
+        color: var(--blue);
+      }
+      a {
+        color: var(--blue);
+      }
+      @media (max-width: 850px) {
+        header {
+          padding: 0 18px;
+        }
+        .intro {
+          padding: 24px 18px;
+          display: block;
+        }
+        h1 {
+          font-size: 28px;
+        }
+        .stepbar {
+          margin-top: 15px;
+        }
+        main {
+          padding: 0 18px 20px;
+          grid-template-columns: 1fr;
+        }
+        .browser iframe {
+          height: 730px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="brand">once<span> / actions</span></div>
+      <span class="badge">Working prototype · local execution</span>
+    </header>
+    <div class="intro">
+      <div>
+        <div class="eyebrow">Demonstration → reusable tool</div>
+        <h1>Show it how. Then hand it the work.</h1>
+        <p>
+          Teach a task in the browser. Once records the controls and named
+          inputs, then executes the same skill with new data.
+        </p>
+      </div>
+      <div class="stepbar">
+        01 Teach &nbsp;→&nbsp; 02 Review &nbsp;→&nbsp; 03 Run
+      </div>
+    </div>
+    <main>
+      <aside class="panel">
+        <h2>1. Define the example</h2>
+        <p>
+          Use these exact values when filling the app on the right. They become
+          reusable input names.
+        </p>
+        <label for="customer">Customer</label
+        ><input id="customer" value="River FC" />
+        <label for="request">Request</label
+        ><textarea id="request">Update the match announcement</textarea>
+        <label for="priority">Priority</label
+        ><select id="priority">
+          <option>normal</option>
+          <option selected>urgent</option>
+        </select>
+        <div class="buttons">
+          <button id="record">Start teaching</button
+          ><button id="finish" class="secondary" disabled>
+            Finish &amp; learn
+          </button>
+        </div>
+        <div id="teaching-status" class="status">
+          Start teaching, fill the three fields in the app, and click Save
+          request.
+        </div>
+        <div class="section">
+          <h2>
+            2. Review the skill <span id="count" class="count">0 steps</span>
+          </h2>
+          <ul id="steps" class="learned"></ul>
+          <p id="empty">
+            Your demonstrated actions appear here. Input values stay out of the
+            exported skill.
+          </p>
+          <div class="buttons">
+            <button id="download" class="secondary" disabled>
+              Export skill</button
+            ><button id="tool" class="secondary" disabled>
+              Export AI tool schema
+            </button>
+          </div>
+        </div>
+        <div class="section">
+          <h2>3. Run it with new data</h2>
+          <p>
+            After teaching, change the values above. Choose a page variation to
+            see what the same skill can handle.
+          </p>
+          <label for="layout">Application layout</label
+          ><select id="layout">
+            <option value="original">Original · fresh element IDs</option>
+            <option value="reordered">Fields in a different order</option>
+            <option value="columns">Two-column layout</option>
+            <option value="renamed">Customer label renamed</option>
+            <option value="ambiguous">Two matching Save buttons</option>
+          </select>
+          <div class="buttons">
+            <button id="run" disabled>Run learned skill →</button
+            ><button id="preview" class="secondary">Preview layout</button>
+          </div>
+          <div id="result" class="status" hidden></div>
+          <p class="foot">
+            This prototype performs real browser actions on this local demo app.
+            It uses no model API. Renamed or ambiguous controls require teaching
+            again; it does not claim to understand arbitrary websites.
+          </p>
+        </div>
+      </aside>
+      <section class="browser" aria-label="Demonstration application">
+        <div class="browser-head">
+          <span class="dots">●●●</span
+          ><b>Client Desk · your selected application</b>
+        </div>
+        <iframe
+          id="app"
+          title="Client Desk demonstration app"
+          src="/app"
+        ></iframe>
+      </section>
+    </main>
+    <script>
+      const $ = (id) => document.getElementById(id);
+      let recording = false,
+        steps = [],
+        skill = null,
+        example = null,
+        invalid = false;
+      const params = () =>
+        Object.fromEntries(
+          ["customer", "request", "priority"].map((key) => [key, $(key).value]),
+        );
+      const status = (id, text, kind = "") => {
+        $(id).hidden = false;
+        $(id).textContent = text;
+        $(id).className = "status " + kind;
+      };
+      function paint() {
+        const out = $("steps");
+        out.replaceChildren();
+        for (const step of steps) {
+          const li = document.createElement("li");
+          li.textContent =
+            step.action === "click"
+              ? `Click “${step.target.name}”`
+              : `${step.action === "select" ? "Choose" : "Fill"} “${step.target.name}” using `;
+          if (step.parameter) {
+            const em = document.createElement("em");
+            em.textContent = step.parameter;
+            li.append(em);
+          }
+          out.append(li);
+        }
+        $("count").textContent = steps.length + " steps";
+        $("empty").hidden = steps.length > 0;
+      }
+      function refresh() {
+        const layout = $("layout").value;
+        $("app").src =
+          "/app?layout=" + encodeURIComponent(layout) + "&fresh=" + Date.now();
+      }
+      $("record").onclick = () => {
+        recording = true;
+        steps = [];
+        skill = null;
+        invalid = false;
+        example = params();
+        $("record").disabled = true;
+        $("finish").disabled = false;
+        for (const id of ["run", "download", "tool"]) $(id).disabled = true;
+        for (const key of ["customer", "request", "priority"])
+          $(key).disabled = true;
+        status(
+          "teaching-status",
+          "Recording. Fill the app using the example values, then save the request.",
+        );
+        paint();
+        refresh();
+      };
+      window.addEventListener("message", (event) => {
+        if (
+          !recording ||
+          event.origin !== location.origin ||
+          event.source !== $("app").contentWindow ||
+          event.data?.type !== "once-demonstration"
+        )
+          return;
+        const raw = event.data;
+        const step = { action: raw.action, target: raw.target };
+        if (raw.action !== "click") {
+          const matches = Object.entries(example)
+            .filter(([, value]) => value === raw.value)
+            .map(([key]) => key);
+          if (matches.length !== 1) {
+            invalid = true;
+            status(
+              "teaching-status",
+              "A value did not match exactly one named input. Restart teaching with distinct example values.",
+              "error",
+            );
+            return;
+          }
+          step.parameter = matches[0];
+        }
+        steps.push(step);
+        paint();
+      });
+      async function post(url, data) {
+        const response = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        });
+        const value = await response.json();
+        if (!response.ok) throw Error(value.error || "Request failed");
+        return value;
+      }
+      $("finish").onclick = async () => {
+        recording = false;
+        $("record").disabled = false;
+        $("finish").disabled = true;
+        for (const key of ["customer", "request", "priority"])
+          $(key).disabled = false;
+        if (invalid) {
+          status(
+            "teaching-status",
+            "Recording contains an unresolved input. Start teaching again.",
+            "error",
+          );
+          return;
+        }
+        try {
+          skill = await post("/api/compile", {
+            name: "create_client_request",
+            parameters: Object.keys(example),
+            steps,
+          });
+          for (const id of ["run", "download", "tool"]) $(id).disabled = false;
+          status(
+            "teaching-status",
+            "Skill compiled. Change the input values and run it on another layout.",
+            "good",
+          );
+        } catch (error) {
+          status("teaching-status", error.message, "error");
+        }
+      };
+      $("preview").onclick = refresh;
+      $("run").onclick = async () => {
+        $("run").disabled = true;
+        status("result", "Running in a separate Chromium browser…");
+        try {
+          const result = await post("/api/run", {
+            parameters: params(),
+            layout: $("layout").value,
+          });
+          const count = result.steps.filter((step) => step.executed).length;
+          status(
+            "result",
+            result.status === "executed"
+              ? `${count} actions executed in ${result.duration_seconds}s. Check the saved request in the app. No model calls.`
+              : `Paused after ${count} actions. ${result.reason} Select Start teaching to demonstrate the changed layout.`,
+            result.status === "executed" ? "good" : "error",
+          );
+          refresh();
+        } catch (error) {
+          status("result", error.message, "error");
+        } finally {
+          $("run").disabled = false;
+        }
+      };
+      function download(value, name) {
+        const url = URL.createObjectURL(
+          new Blob([JSON.stringify(value, null, 2)], {
+            type: "application/json",
+          }),
+        );
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = name;
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      }
+      $("download").onclick = () =>
+        download(skill, "create_client_request.skill.json");
+      $("tool").onclick = async () =>
+        download(
+          await (await fetch("/api/tool")).json(),
+          "create_client_request.tool.json",
+        );
+    </script>
+  </body>
+</html>

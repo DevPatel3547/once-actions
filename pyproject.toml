@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "once-actions"
+version = "0.1.0"
+description = "Teach a browser task and run it as a parameterized tool."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = ["playwright==1.63.0"]
+license = "MIT"
+
+[project.optional-dependencies]
+mcp = ["mcp==2.3.0"]
+dev = ["ruff==0.16.10", "build==1.6.1"]
+
+[project.scripts]
+once-actions = "once_actions.__main__:main"
+
+[tool.setuptools.package-data]
+once_actions = ["assets/*"]
+
+[tool.setuptools.packages.find]
+include = ["once_actions*"]
+
+[tool.ruff]
+line-length = 110
