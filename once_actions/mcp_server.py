@@ -10,12 +10,19 @@ from mcp.server import Server
 from mcp.server.stdio import stdio_server
 
 from .runner import execute, local_origin
+from .scope import application_origin
 from .skills import SkillError, tool_schema, validate
 
 
 def create_server(skill, url):
     skill = copy.deepcopy(validate(skill))
-    local_origin(url)
+    if skill["schema"] == "once-actions/v2":
+        if url is not None and url != skill["start_url"]:
+            raise SkillError("The workflow URL is fixed by the reviewed skill")
+        url = skill["start_url"]
+        application_origin(url)
+    else:
+        local_origin(url)
     schema = tool_schema(skill)
     # Lock belongs to the worker, so cancellation cannot admit a second browser
     # while the first is still finishing. A tool error is never automatically retried.
@@ -57,10 +64,10 @@ def create_server(skill, url):
         return types.CallToolResult(
             content=[types.TextContent(text=json.dumps(result))],
             structuredContent=result,
-            isError=result["status"] != "executed",
+            isError=result["status"] not in ("executed", "verified"),
         )
 
-    return Server("once-actions", version="0.1.0", on_list_tools=list_tools, on_call_tool=call_tool)
+    return Server("once-actions", version="0.2.0", on_list_tools=list_tools, on_call_tool=call_tool)
 
 
 async def serve(skill, url):

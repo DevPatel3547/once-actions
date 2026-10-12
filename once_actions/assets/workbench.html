@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Once Actions — Workflow library</title>
+    <link rel="stylesheet" href="/workbench.css" />
+    <script src="/workbench.js" defer></script>
+  </head>
+  <body>
+    <header>
+      <a class="brand" href="/">once<span> / actions</span></a
+      ><span class="badge">Your local workflow library</span>
+    </header>
+    <main>
+      <div class="intro">
+        <div>
+          <p class="eyebrow">Teach it. Review it. Reuse it.</p>
+          <h1>Give repeated work a memory.</h1>
+          <p>
+            Record a browser task and turn it into a reusable, checked workflow.
+          </p>
+        </div>
+        <button id="new">+ Teach a workflow</button>
+      </div>
+      <div id="notice" role="status" hidden></div>
+      <section id="teach" class="card" hidden>
+        <div class="section-title">
+          <h2>Teach a workflow</h2>
+          <button class="secondary" id="hide-teach">Close</button>
+        </div>
+        <p>
+          A separate browser opens. Use the example values exactly. Your
+          demonstration performs real actions in that application.
+        </p>
+        <div class="form-grid">
+          <label
+            >Workflow name<input
+              id="name"
+              value="create_client_request"
+              maxlength="64"
+              autocomplete="off" /></label
+          ><label
+            >Application URL<input
+              id="url"
+              type="url"
+              placeholder="https://your-application.example/"
+              autocomplete="off"
+          /></label>
+        </div>
+        <h3>Example inputs</h3>
+        <div id="example-list"></div>
+        <button id="add-example" class="secondary">+ Add an input</button>
+        <p class="help">
+          One distinct example string per input. These values bind the
+          demonstration; they are not saved in the skill. Use a self-contained
+          page with native controls. Cross-origin resources, frames, and popups
+          are not supported. Sign in before starting capture if your page
+          requires it.
+        </p>
+        <div class="form-grid">
+          <label
+            >Check the outcome by<select id="check-kind">
+              <option value="text">New exact visible text</option>
+              <option value="parameter">A named input becoming visible</option>
+            </select></label
+          ><label
+            >Expected text or input name<input
+              id="check-value"
+              value="Request saved"
+              maxlength="2000"
+          /></label>
+        </div>
+        <label class="remember"
+          ><input id="remember" type="checkbox" /> Keep this workflow’s cookies
+          and local storage on this computer</label
+        >
+        <p class="help">
+          Optional. Needed for sign-in and browser-only apps. This can contain
+          credentials and application data; it stays in the private local
+          library and is excluded from skill exports.
+        </p>
+        <div class="buttons">
+          <button id="record">Open recording browser</button
+          ><button id="arm" class="secondary" hidden>Start capturing</button
+          ><button id="finish" class="secondary" disabled>
+            Finish recording</button
+          ><button id="demo" class="secondary">Use the practice app</button>
+        </div>
+        <p id="record-status" role="status"></p>
+        <ol id="record-steps"></ol>
+        <button id="save" hidden>Save reviewed workflow</button>
+      </section>
+      <div class="workspace">
+        <section class="card library">
+          <div class="section-title">
+            <h2>Workflows</h2>
+            <label class="import"
+              >Import<input
+                id="import"
+                type="file"
+                accept="application/json,.json"
+                hidden
+            /></label>
+          </div>
+          <div id="library"></div>
+        </section>
+        <section class="card detail">
+          <div id="empty">
+            <p class="eyebrow">Your first reusable task</p>
+            <h2>Show the browser what to do.</h2>
+            <p>
+              Teach a task in the practice app or import a reviewed workflow.
+              Your library stays here when you restart.
+            </p>
+            <button id="empty-teach">Teach my first workflow</button>
+          </div>
+          <div id="selected" hidden>
+            <div class="section-title">
+              <h2 id="skill-name"></h2>
+              <span id="revision" class="badge"></span>
+            </div>
+            <p id="destination" class="destination"></p>
+            <p id="outcome" class="help"></p>
+            <ol id="skill-steps"></ol>
+            <div id="inputs"></div>
+            <div class="buttons">
+              <button id="run">Run workflow</button
+              ><button id="export" class="secondary">Export skill</button
+              ><button id="cancel" class="secondary" hidden>
+                Stop after current action
+              </button>
+            </div>
+            <p class="help">
+              Each new Run can write data. Check previous outcomes before
+              repeating. There is no rollback.
+            </p>
+            <div id="run-status" role="status" hidden></div>
+            <details>
+              <summary>Connect an agent</summary>
+              <p>
+                Use this command with an MCP host while the workbench is
+                running. It pins this reviewed revision and writes to the same
+                run history.
+              </p>
+              <label
+                >Agent connection command<textarea
+                  id="agent-command"
+                  rows="3"
+                  readonly
+                ></textarea>
+              </label>
+            </details>
+            <p id="session-status" class="help"></p>
+            <button id="forget-session" class="secondary" hidden>
+              Forget saved browser state
+            </button>
+            <details>
+              <summary>Correct one target</summary>
+              <p>
+                Review a changed control and save a new revision. This changes
+                only the selected target; previous revisions remain available in
+                run records.
+              </p>
+              <label>Step<select id="correction-step"></select></label>
+              <label
+                >New label or placeholder<input
+                  id="target-name"
+                  maxlength="160"
+              /></label>
+              <label
+                >Field group, if present<input
+                  id="target-group"
+                  maxlength="160"
+              /></label>
+              <div id="correction-diff" class="help"></div>
+              <button id="correct" class="secondary">
+                Save reviewed correction
+              </button>
+            </details>
+          </div>
+        </section>
+      </div>
+      <section class="card history">
+        <h2>Recent runs</h2>
+        <p class="help">
+          Verified means the expected text became visible. It does not prove a
+          remote system committed a durable transaction. Interrupted or
+          unverified runs need review.
+        </p>
+        <div id="history"></div>
+      </section>
+      <footer>
+        Local execution · No model calls ·
+        <a
+          href="https://github.com/DevPatel3547/once-actions"
+          target="_blank"
+          rel="noreferrer"
+          >Source & limits</a
+        >
+      </footer>
+    </main>
+  </body>
+</html>

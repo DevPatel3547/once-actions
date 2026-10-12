@@ -16,7 +16,7 @@ jobs:
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: ${{ matrix.python }}
-      - run: python -m pip install -e '.[mcp,dev]'
+      - run: python -m pip install -e '.[mcp,dev,integration]'
       - run: python -m playwright install --with-deps chromium
       - run: ruff check .
       - run: ruff format --check .
@@ -27,5 +27,5 @@ jobs:
           python -m venv /tmp/once-wheel
           /tmp/once-wheel/bin/pip install dist/*.whl
           cd /tmp
-          /tmp/once-wheel/bin/once-actions --help
-          /tmp/once-wheel/bin/python -c "from once_actions.server import ASSETS; assert (ASSETS / 'studio.html').is_file()"
+          /tmp/once-wheel/bin/once-actions doctor
+          /tmp/once-wheel/bin/python -c "from once_actions.server import ASSETS; assert (ASSETS / 'workbench.html').is_file()"

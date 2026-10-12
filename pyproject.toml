@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "once-actions"
-version = "0.1.0"
+version = "0.2.0"
 description = "Teach a browser task and run it as a parameterized tool."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -14,6 +14,7 @@ license = "MIT"
 [project.optional-dependencies]
 mcp = ["mcp==2.3.0"]
 dev = ["ruff==0.16.10", "build==1.6.1"]
+integration = ["sqlite-web==0.8.2"]
 
 [project.scripts]
 once-actions = "once_actions.__main__:main"

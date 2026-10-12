@@ -1,0 +1,7 @@
+include LICENSE README.md CHANGELOG.md
+recursive-include once_actions/assets *.html *.js *.css
+recursive-include tests *.py
+recursive-include tests/vendor *.html *.js *.css *.json *.md
+recursive-include docs *.md *.png
+exclude BUILD_STATUS.md
+global-exclude *.pyc *.sqlite3 *.sqlite3-journal

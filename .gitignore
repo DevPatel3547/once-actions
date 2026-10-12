@@ -7,3 +7,6 @@ __pycache__/
 /dist/
 /build/
 /BUILD_STATUS.md
+/.once-actions/
+*.sqlite3
+*.sqlite3-*

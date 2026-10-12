@@ -1,0 +1,22 @@
+{
+  "repository": "https://github.com/tastejs/todomvc",
+  "revision": "ff43b02e59dfa604386bb382034b2cd07c2bcd8a",
+  "files": {
+    "index.html": {
+      "source": "examples/javascript-es6/dist/index.html",
+      "sha256": "3f5e2a1f370e7326c9523fdbaf07a3d98ab11e5fb0dd243ff83d276559f1d87a"
+    },
+    "app.bundle.js": {
+      "source": "examples/javascript-es6/dist/app.bundle.js",
+      "sha256": "01b56caf970328499b1ea12a405bd4c03e27bc4bad6d6e36d49884fe75159fac"
+    },
+    "app.css": {
+      "source": "examples/javascript-es6/dist/app.css",
+      "sha256": "399c4f5ba333eabe3cd3fa4ea6c7093dc0a9440aa32ed90d71d7df485069c6c1"
+    },
+    "base.js": {
+      "source": "examples/javascript-es6/dist/base.js",
+      "sha256": "12d217a42e7349e522ee100e833b734471aa2d14823defa5e1bd77802cf67a9d"
+    }
+  }
+}

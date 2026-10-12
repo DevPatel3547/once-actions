@@ -1,92 +1,117 @@
 # Once Actions
 
-**Teach a browser task. Give an agent a tool that performs it.**
+**Teach a browser task. Save it as a checked tool an agent can call.**
 
-Once Actions is a working local prototype of demonstration-to-tool compilation. Fill a form once, bind its values to named inputs, review the recorded actions, then replay with different data. A saved skill can also run through an MCP client.
+Once Actions is a local workflow workbench for macOS and Linux. Demonstrate a task in a separate Chromium browser, review its parameterized steps, save an immutable revision, then run it with new inputs. Runs have durable identities and history. An MCP bridge lets an agent use the same reviewed revision and journal.
 
-![Once Actions studio](docs/studio.png)
+![Once Actions workbench](docs/studio.png)
 
-## Try it
+**Release status: local beta, with a defined supported scope.** The complete record → review → save → run → verify → correct → export/MCP path is implemented and tested. This is not an arbitrary-website automation service or independently audited production platform. See [support and limits](docs/operations.md).
 
-Requires Python 3.10+ and Chromium installed through Playwright. No model API key or paid service is needed.
+## Install and start
+
+Python 3.10+ on macOS or Linux. No model API key, account, or paid service is required.
 
 ```sh
+git clone https://github.com/DevPatel3547/once-actions.git
+cd once-actions
 python -m venv .venv
 source .venv/bin/activate
-pip install -e '.[mcp,dev]'
+pip install -e '.[mcp]'
 python -m playwright install chromium
+once-actions doctor
 once-actions studio
 ```
 
-Open **http://127.0.0.1:8780**. Use the IP address shown; the server rejects other Host headers.
+On Linux, `python -m playwright install --with-deps chromium` also installs browser system dependencies. Use a desktop session for recording; the automated checks use headless Chromium.
 
-1. Click **Start teaching**. In the app, enter the three example values shown on the left and save the request. Teaching performs a real write to the demo's in-memory server.
-2. Click **Finish & learn**. Review the four actions and export the skill.
-3. Change the input values and select **Fields in a different order**. Run the learned skill. The new record appears in the application.
-4. Select **Two matching Save buttons** and run again. Execution pauses before choosing either button. No new request is saved in this example.
-5. To handle **Customer label renamed**, preview that layout and teach again using its new label.
+Open **http://127.0.0.1:8780**. The workbench stores its library in `~/.local/share/once-actions`; `--data-dir /private/location` selects another directory. Only one process may own a library.
 
-The included Client Desk app is owned test software, not a third-party integration. The studio currently teaches this one form. The executor and MCP bridge accept the same data-only skill format against a fixed loopback application URL.
+## Teach your first workflow
 
-## Connect a saved skill to an agent
+1. Choose **Teach a workflow**, then **Use the practice app**. The included example has three named inputs and an outcome of `Request saved`.
+2. Choose **Open recording browser**. Prepare the page or sign in if needed. Setup actions are ignored until you choose **Start capturing** in the workbench.
+3. In the recording browser, enter the exact example values and click Save. **Teaching performs real actions**, including writes.
+4. Choose **Finish recording**, inspect the steps, and **Save reviewed workflow**.
+5. Enter new values in the saved workflow and select **Run workflow**. Inspect the outcome and run history.
 
-Export `create_client_request.skill.json` from the studio. Leave the studio running. Configure an MCP host to launch this command with absolute paths:
+For another supported application, supply its URL and named example values. Text inputs, textareas, native selects, buttons, links, checkboxes, and Enter submission are supported. The recorder binds exact example values to parameter names; it rejects unknown values rather than embedding them in a skill.
+
+**Keep browser state** is optional and off by default. It saves cookies and local storage privately for this workflow, which can support same-origin sign-in sessions and apps using local storage. It does not persist arbitrary JavaScript memory, session storage, or IndexedDB. Saved state can contain credentials and application data; it is not encrypted by Once Actions and is excluded from skill exports. The workbench provides **Forget saved browser state**.
+
+## Correct a changed control
+
+When a required target is missing or ambiguous, execution stops. Open **Correct one target**, choose the affected step, update its label or placeholder and optional field group, and save a new revision. The action type, parameters, URL, and outcome check remain unchanged. Earlier revisions remain in the library, and run records point to the exact revision used.
+
+A correction does not resume a partially completed run. Inspect application state before starting a new run; earlier actions may already have changed it.
+
+## Connect an agent through MCP
+
+In a saved workflow, open **Connect an agent**. Use its command with an MCP host, replacing the executable with the absolute path to your installed `once-actions`:
 
 ```sh
-/absolute/path/to/.venv/bin/once-actions mcp \
-  /absolute/path/to/create_client_request.skill.json \
-  --url http://127.0.0.1:8780/app
+/absolute/path/to/.venv/bin/once-actions mcp-live \
+  --studio http://127.0.0.1:8780 \
+  --skill-id YOUR_SAVED_SKILL_ID --revision 1
 ```
 
-This exposes one tool, `create_client_request`, with string inputs `customer`, `request`, and `priority`. The URL and skill are fixed at server startup; the caller cannot supply another URL or a replacement skill. Calls execute real Chromium actions. Host-side permissions still matter: these calls can write data. There is no automatic retry, rollback, or exactly-once guarantee. After a timeout or partial execution, inspect application state before calling again.
-
-The MCP adapter uses the [official Python SDK](https://github.com/modelcontextprotocol/python-sdk). Its acceptance test launches a separate MCP server, discovers the tool, calls it through the SDK client, and checks the resulting application record. **This verifies tool integration; it does not measure a language model choosing or using the tool.**
-
-You can also run without MCP:
-
-```sh
-once-actions run create_client_request.skill.json \
-  --parameters new-request.json --url http://127.0.0.1:8780/app
-once-actions tool create_client_request.skill.json
-```
-
-`new-request.json`:
+Keep the workbench running. The bridge exposes one reviewed revision. Its arguments are:
 
 ```json
-{"customer": "Harbor FC", "request": "Publish the updated schedule", "priority": "normal"}
+{
+  "run_id": "d4d7b658-8b14-4e0d-a3ca-af6319d7d934",
+  "inputs": {
+    "customer": "Harbor FC",
+    "request": "Publish the updated schedule",
+    "priority": "normal"
+  }
+}
 ```
 
-## How it works
+Use a **new UUID for an intentional new run**. After a lost response, reuse the same ID and identical inputs: the workbench returns the existing run instead of executing again. Reusing an ID with different inputs or a different revision is rejected. Interrupted runs remain interrupted and are not replayed automatically. This is request deduplication, not an exactly-once guarantee for a remote service.
 
-The recorder observes field changes and button clicks. It describes targets by accessible role, exact accessible name, and fieldset name when available. Each demonstrated value must match exactly one named example input. The compiler replaces that value with its parameter name and rejects literal values or executable code in the plan.
+The bridge uses the [official MCP Python SDK](https://github.com/modelcontextprotocol/python-sdk). Tests exercise a real SDK client and server subprocess, browser execution, and reconnecting with the same run ID. They do not measure language-model planning.
 
-The runner opens a fresh browser context and resolves these semantic targets. Element IDs, coordinates, and field positions are not part of the skill. It requires exactly one visible target; a missing or ambiguous target pauses execution. It does not silently ask a model to guess. A hash detects edits to the exported plan; it is not a signature or proof of trust.
+## Export, CLI, and backup
 
-The return value distinguishes **actions executed** from application success. In tests we separately inspect server state to verify the correct write. Generic postcondition verification is not implemented.
-
-## What is established
-
-- A real browser demonstration compiles into a reusable four-step skill.
-- That skill writes the exact new values with new element IDs, reordered fields, and a two-column layout.
-- Missing labels and duplicate Save targets stop the tested workflow before submission.
-- Teaching again handles the renamed field.
-- The full studio flow, JSON download, mobile layout, and real MCP transport are exercised automatically.
-
-Run the checks yourself:
+An exported v2 skill contains its fixed application URL and outcome check. It contains no browser session. Run it without the workbench:
 
 ```sh
+once-actions run create_client_request.skill.json --parameters new-request.json
+once-actions tool create_client_request.skill.json
+once-actions mcp create_client_request.skill.json
+```
+
+These standalone commands use a fresh browser context and do **not** use the workbench journal or saved browser state. Prefer `mcp-live` for durable agent runs. Legacy v1 files still work with an explicit `--url` and report actions executed without outcome verification.
+
+Create a consistent private backup, including saved browser state if enabled:
+
+```sh
+once-actions backup --output /private/location/once-backup.sqlite3
+```
+
+The destination must not already exist. See [restore and troubleshooting](docs/operations.md) before replacing a library.
+
+## Evidence and limits
+
+The suite covers recording, replay, exact database writes, immutable revisions, stale-edit rejection, duplicate run requests, restart recovery, browser-state persistence, backup/restore, scope enforcement, desktop/mobile UI, and both MCP modes.
+
+Two independent application checks run without modifying their UI code:
+
+- **sqlite-web 0.8.2:** record its native insert form, replay different input, then query its SQLite database to verify the exact row.
+- **TodoMVC JavaScript ES6:** record Enter submission against a pinned upstream bundle with provenance hashes. This particular build stores tasks only in memory; this test establishes UI execution, not persistent storage.
+
+```sh
+pip install -e '.[mcp,dev,integration]'
+python -m playwright install chromium
 ruff check .
 ruff format --check .
 python -m unittest discover -v
 python -m build
 ```
 
-These are controlled acceptance cases, not a benchmark of arbitrary websites. See [design and limits](docs/design.md) for the trust boundaries and [the next experiment](docs/next-experiment.md) for the evidence needed before expanding the project.
+These are acceptance tests, not evidence that Once Actions beats a well-written Playwright script or works reliably across arbitrary sites. [Design and trust boundaries](docs/design.md), [evidence](docs/validation.md), and [future evaluation](docs/next-experiment.md) describe the practical limits.
 
-## Scope
+Browser recording and workflow automation already exist, including [workflow-use](https://github.com/browser-use/workflow-use) and [Skyvern](https://www.skyvern.com/products). This project does not claim to invent them. Its current contribution is an integrated local workflow lifecycle with reviewable revisions, explicit outcome checks, and durable tool-call handling. Comparative advantage, adoption, and research novelty remain unproven.
 
-This first release supports text fields, native selects, and buttons on a trusted local app. It does not support authentication, arbitrary internet sites, browser extensions, conditional workflows, automatic repairs, or model-driven planning. Demo records and the active studio skill live in memory and disappear when the server stops; export skills you want to keep.
-
-Browser workflow recording already exists in projects such as [workflow-use](https://github.com/browser-use/workflow-use) and products such as [Skyvern](https://www.skyvern.com/products). This project does not claim to invent it. The proposed direction is a small, reviewable tool learned from demonstration, with user correction when meaning changes. Whether that offers a useful advantage remains to be tested.
-
-MIT licensed.
+MIT licensed. Vendored TodoMVC test files retain their upstream license and provenance.
